@@ -95,6 +95,9 @@ output:empty { display: none; }
 td button+button{margin:5px 0 0}
 [hidden]{display:none!important}
 @media(max-width:420px){.summary{gap:5px}.summary article{padding:6px}.summary span{font-size:.72rem}}
+.status-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.status-controls select { width: auto; max-width: 100%; }
+.status-controls button:disabled { opacity: .5; cursor: default; }
 </style>
 </head>
 <body class="inventory">
@@ -103,7 +106,8 @@ td button+button{margin:5px 0 0}
 </div><p class="footnote">Use dados fictícios nesta demonstração.</p></main>
 <script>
 const by=id=>document.getElementById(id); const report=message=>{by('message').textContent=message;}; const cell=(row,value)=>{const td=row.insertCell();td.textContent=value;return td;}; const addButton=(parent,label,action)=>{const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=label;b.addEventListener('click',action);parent.append(b);}; const normalize=value=>value.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,''); const persist=(key,data)=>localStorage.setItem(key,JSON.stringify(data)); const load=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}}; const csvExport=(filename,rows)=>{const escape=value=>{let text=String(value??'');if(/^[=+@\-\t\r\n]/.test(text.trimStart())||/^[\t\r\n]/.test(text))text="'"+text;return '"'+text.replaceAll('"','""')+'"';};const content=rows.map(row=>row.map(escape).join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\uFEFF',content],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-const key='nathalia-inventario-v1';let items=load(key,[{id:'TI-001',name:'Notebook',sector:'Atendimento',status:'Em uso'},{id:'TI-002',name:'Impressora',sector:'Administrativo',status:'Manutenção'},{id:'TI-003',name:'Monitor',sector:'Estoque',status:'Disponível'}]);let editing=null;const form=by('entry');function statusControl(row, item) {
+const key='nathalia-inventario-v1';let items=load(key,[{id:'TI-001',name:'Notebook',sector:'Atendimento',status:'Em uso'},{id:'TI-002',name:'Impressora',sector:'Administrativo',status:'Manutenção'},{id:'TI-003',name:'Monitor',sector:'Estoque',status:'Disponível'}]);let editing=null;const form=by('entry');const pendingStatuses = new Map();
+function statusControl(row, item) {
   const select = document.createElement('select');
   select.setAttribute('aria-label', 'Alterar status de ' + item.id);
   for (const status of ['Disponível', 'Em uso', 'Manutenção']) {
@@ -112,19 +116,36 @@ const key='nathalia-inventario-v1';let items=load(key,[{id:'TI-001',name:'Notebo
     option.textContent = status;
     select.append(option);
   }
-  select.value = item.status;
+  select.value = pendingStatuses.get(item.id) ?? item.status;
+
+  const save = document.createElement('button');
+  save.type = 'button';
+  save.className = 'secondary';
+  save.textContent = 'Salvar';
+  save.setAttribute('aria-label', 'Salvar status de ' + item.id);
+  save.disabled = select.value === item.status;
   select.addEventListener('change', () => {
+    save.disabled = select.value === item.status;
+    if (save.disabled) pendingStatuses.delete(item.id);
+    else pendingStatuses.set(item.id, select.value);
+  });
+  save.addEventListener('click', () => {
     const status = select.value;
+    if (status === item.status) return;
     const next = items.map(entry => entry.id === item.id ? {...entry, status} : entry);
     if (editing === item.id) form.elements.namedItem('status').value = status;
     saveItems(next, item.id, 'Status de ' + item.id + ' alterado para ' + status + '.');
     const updated = by('rows').querySelector('select[aria-label="Alterar status de ' + CSS.escape(item.id) + '"]');
     (updated || by('status')).focus();
   });
-  cell(row, '').append(select);
+  const controls = document.createElement('div');
+  controls.className = 'status-controls';
+  controls.append(select, save);
+  cell(row, '').append(controls);
 }
 
 function saveItems(next, id, message) {
+  pendingStatuses.delete(id);
   let stored = true;
   try { persist(key, next); } catch { stored = false; }
   items = next;
