@@ -1,16 +1,16 @@
 # Inventário de equipamentos de TI
 
-## Baixar e abrir no navegador
+## Abrir a versão visual
 
-**[Baixar projeto em ZIP](https://github.com/NathaliaCosmo3/inventario-de-equipamentos/archive/refs/heads/main.zip)**
+1. Abra o [arquivo index.html](https://github.com/NathaliaCosmo3/inventario-de-equipamentos/blob/main/index.html).
+2. Na barra acima do código, clique no ícone de download (**Download raw file**).
+3. Na pasta **Downloads**, abra `index.html` com dois cliques. Ele funciona offline no Chrome ou Edge, sem instalar Python.
 
-1. Extraia o ZIP. No Windows, clique com o botão direito no arquivo e escolha **Extrair Tudo**.
-2. Na pasta extraída, abra `index.html` com duplo clique. A interface funciona offline e dispensa instalação.
+**[Baixar todos os arquivos em ZIP](https://github.com/NathaliaCosmo3/inventario-de-equipamentos/archive/refs/heads/main.zip)**
 
-A interface inclui três equipamentos fictícios para demonstração. Cadastre ou edite itens, filtre por status e baixe a lista exibida em CSV. Os registros do painel ficam no navegador e o programa Python consulta o CSV informado no terminal.
+Cadastre e edite equipamentos, confira os indicadores de uso e manutenção e exporte a lista filtrada em CSV. Inclui dados fictícios para demonstração. Os registros ficam no navegador usado.
 
 ## Versão em Python para terminal
-
 
 Consulta um inventário em CSV e filtra equipamentos por status. O resultado mostra patrimônio, equipamento, setor e o total de registros encontrados.
 
